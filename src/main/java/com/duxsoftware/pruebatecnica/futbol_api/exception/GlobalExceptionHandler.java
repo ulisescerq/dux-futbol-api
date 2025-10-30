@@ -1,6 +1,9 @@
 package com.duxsoftware.pruebatecnica.futbol_api.exception;
 
 import com.duxsoftware.pruebatecnica.futbol_api.dto.ErrorResponse;
+
+import java.nio.file.AccessDeniedException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,6 +23,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> manejarSolicitudInvalida(SolicitudInvalidaException ex) {
         ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST.value());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied() {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse("Autenticación fallida", 401));
     }
     
 }
