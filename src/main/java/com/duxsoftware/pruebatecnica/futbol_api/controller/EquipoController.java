@@ -16,12 +16,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.duxsoftware.pruebatecnica.futbol_api.model.Equipo;
 import com.duxsoftware.pruebatecnica.futbol_api.service.EquipoService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.springframework.web.bind.annotation.RequestParam;
 
 
 @RestController //convierte objetos Java en respuestas JSON
 @RequestMapping("/equipos")
-
+@Tag(name= "Equipos", description = "Gestión de equipos de fútbol")
 public class EquipoController {
 
     // Inyección del servicio de Equipo
@@ -29,23 +34,35 @@ public class EquipoController {
     private EquipoService equipoService;
 
     @GetMapping
+    @Operation(summary = "Listar todos los equipos", description = "Requiere token JWT")
+    @ApiResponse(responseCode = "200", description = "Lista de equipos")
+    @ApiResponse(responseCode = "401", description = "Autenticacion requerida")
     public List<Equipo> getAllEquipos() {
         return equipoService.getAllEquipos();
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Obtener equipo por ID", description = "Busca el equipo por su ID")
+    @ApiResponse(responseCode = "200", description = "Equipo encontrado")
+    @ApiResponse(responseCode = "404", description = "Equipo no encontrado")
     //el PathVariable sirve para capturar el valor de la variable id en la URL
     public Equipo getEquipoById(@PathVariable Long id) {
         return equipoService.getEquipoById(id);
     }
     
     @GetMapping("/buscar")
+    @Operation(summary = "Buscar equipo por nombre", description = "Búsqueda parcial")
+    @ApiResponse(responseCode = "200", description = "equipo encontrado")
+    @ApiResponse(responseCode = "404", description = "equipo no encontrado")
     //el requestParam sirve para capturar el valor del parametro nombre en la URL
     public List<Equipo> searchByNombre(@RequestParam String nombre) {
         return equipoService.searchByNombre(nombre);
     }
 
     @PostMapping
+    @Operation(summary = "Crear un nuevo equipo")
+    @ApiResponse(responseCode = "201", description = "Equipo creado")
+    @ApiResponse(responseCode = "400", description = "Datos inválidos")
     //el ResponseEntity sirve para devolver una respuesta HTTP completa
     //el RequestBody sirve para mapear el cuerpo de la solicitud HTTP a un objeto Java, es decir que convierte el JSON que manda el cliente en un objeto Java
     public ResponseEntity<Equipo> createEquipo(@RequestBody Equipo equipo) {
@@ -57,12 +74,18 @@ public class EquipoController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Actualizar equipo")
+    @ApiResponse(responseCode = "200", description = "Equipo actualizado")
+    @ApiResponse(responseCode = "404", description = "Equipo no encontrado")
     // el equipoDetails sale del cuerpo de la solicitud, osea que lo manda el cliente y es un objeto JSON, es la infomracion nueva para actualizar
-    public Equipo uptadteEquipo(@PathVariable Long id, @RequestBody Equipo equipoDetails){
+    public Equipo updateteEquipo(@PathVariable Long id, @RequestBody Equipo equipoDetails){
         return equipoService.updateEquipo(id, equipoDetails);
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar equipo")
+    @ApiResponse(responseCode = "204", description = "Equipo eliminado")
+    @ApiResponse(responseCode = "404", description = "Equipo no encontrado")
     //el noContent sirve para devolver una respuesta HTTP sin cuerpo
     // el .build() construye la respuesta HTTP y devuelve el objeto ResponseEntity
     public ResponseEntity<Void> deleteEquipo(@PathVariable Long id){

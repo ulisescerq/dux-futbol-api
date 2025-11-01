@@ -56,12 +56,14 @@ public class EquipoService {
     }
 
     public void deleteEquipo(Long id) {
-        Equipo equipo = getEquipoById(id);
-        equipoRepository.delete(equipo);
+        if (!equipoRepository.existsById(id)) {
+            throw new RecursoNoEncontradoException("Equipo no encontrado");
+        }
+        equipoRepository.deleteById(id);
     }
 
-    //este metodo valida que los campos no esten vacios
-    //es private porque solo se usa dentro de esta clase
+    //Este metodo valida que los campos no esten vacios
+    //Es private porque solo se usa dentro de esta clase
     private void validarEquipo(Equipo equipo) {
         if (equipo.getNombre() == null || equipo.getNombre().trim().isEmpty() ||
             equipo.getLiga() == null || equipo.getLiga().trim().isEmpty() ||

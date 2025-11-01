@@ -20,32 +20,52 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Autowired
     private Jwt jwt;
-    
-    @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request,
-                                    @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain chain) throws ServletException, IOException {
 
-        // 1. BUSCAR EL HEADER "Authorization"
+    // RUTAS QUE NO DEBEN PASAR POR EL FILTRO JWT
+    private static final String[] EXCLUDED_PATHS = {
+        "/auth/login",
+        "/swagger-ui.html",
+        "/swagger-ui",
+        "/v3/api-docs",
+        "/swagger-resources",
+        "/webjars",
+        "/h2-console"
+    };
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        for (String excluded : EXCLUDED_PATHS) {
+            if (path.startsWith(excluded)) {
+                return true; // SALTAR EL FILTRO
+            }
+        }
+        return false;
+    }
+
+    @Override
+    protected void doFilterInternal(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain chain) throws ServletException, IOException {
+
         String header = request.getHeader("Authorization");
 
-        // 2. ¿EXISTE Y EMPIEZA CON "Bearer "?
         if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7); // Quita "Bearer "
+            String token = header.substring(7);
 
-            // 3. ¿EL TOKEN ES VÁLIDO?
             if (jwt.validateToken(token)) {
                 String username = jwt.extractUsername(token);
 
-                // 4. AUTENTICAR AL USUARIO EN SPRING SECURITY
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        username, null, Collections.emptyList());
-                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                            username, null, Collections.emptyList());
+                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
             }
         }
 
-        // 5. CONTINUAR (SIEMPRE)
         chain.doFilter(request, response);
     }
 }
